@@ -4,7 +4,13 @@
 
 from moose_lib import MooseClient, cli_log, CliLogData
 
-def run(client: MooseClient, params):
+    
+def run(client: MooseClient, params, jwt_payload):
+    rank_by = params.get("rank_by", ["total_projects"])[0]
+    
+    if rank_by not in ["total_projects", "total_repo_size_kb", "avg_repo_size_kb"]:
+        raise ValueError("Invalid rank_by value. Must be one of: total_projects, total_repo_size_kb, avg_repo_size_kb")
+    
     cli_log(CliLogData(action="RankedLanguages", message=f"params: {params if params else 'no params'}", message_type="Info"))
     query = f'''
     SELECT 
@@ -17,6 +23,6 @@ def run(client: MooseClient, params):
     GROUP BY 
         language 
     ORDER BY 
-        total_projects DESC
+        {rank_by} DESC
     '''
-    return client.query(query, { })
+    return client.query(query, { "rank_by": rank_by })
